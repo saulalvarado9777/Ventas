@@ -1,0 +1,261 @@
+﻿@{
+    ViewBag.Title = "Usuario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    List<CapaEntidad.Usuario> Listar = ViewBag.Listar;
+}
+<!-- Modal -->
+<div class="modal fade" id="agregar-usuarios" data-backdrop="static" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Usuarios</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="txtid" value="0" />
+                <div class="row g-2">
+                    <div class="col-sm-6">
+                        <label for="txtnombres" class="form-label">Nombres</label>
+                        <input type="text" class="form-control" id="txtnombres" autocomplete="off" placeholder="Escribir nombre's">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="txtapellidos" class="form-label">Apellidos</label>
+                        <input type="text" class="form-control" id="txtapellidos" autocomplete="off" placeholder="Escribir apellidos">
+                    </div>
+                </div>
+                <div class="row g-2">
+                    <div class="col-sm-6">
+                        <label for="txtcorreo" class="form-label">Correo</label>
+                        <input type="email" class="form-control" id="txtcorreo" autocomplete="off" placeholder="Escribir correo">
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="cboactivo" class="form-label">Activo</label>
+                        <select class="form-select form-control" aria-label="Default select example" id="cboactivo">
+                            <option selected>Seleccionar opción</option>
+                            <option value="1">Habilitado</option>
+                            <option value="0">Deshabilitado</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-sm-12">
+                    <div id="mensajeError" class="alert alert-danger" role="alert">
+                        A simple danger alert—check it out!
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="eliminar btn btn-danger" onclick="Eliminar()">Eliminar</button>
+                <button type="button" class="btn btn-primary" onclick="Guardar()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <h1 class="h3 mb-0 text-gray-800">Usuarios</h1>
+    <div class="d-sm-flex">
+        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm mr-2" onclick="AbrirModal(null)">
+            <i class="fas fa-user fa-sm text-white-50"></i> Agregar Usuario
+        </a>
+        <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm mr-2">
+            <i class="fas fa-download fa-sm text-white-50"></i> Generar Reporte
+        </a>
+    </div>
+
+</div>
+<!-- DataTales Example -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-danger">Lista de usuarios</h6>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover cell-border text-center" id="tabla-usuarios" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nombre</th>
+                        <th>Apellidos</th>
+                        <th>Correo</th>
+                        <th>Activo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Listar)
+                    {
+                    <tr>
+                        <td>@item.IdUsuario</td>
+                        <td>@item.Nombre</td>
+                        <td>@item.Apellidos</td>
+                        <td>@item.Correo</td>
+                        <td>@item.Activo</td>
+                    </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script>
+        var DataTable;
+        var FilaSeleccionada;
+        var IndexFila;
+
+        DataTable = $("#tabla-usuarios").DataTable({
+            responsive: true,
+            ordering: false,
+            "columns": [
+                { "data": "IdUsuario" },
+                { "data": "Nombre" },
+                { "data": "Apellidos" },
+                { "data": "Correo" },
+                { "data": "Activo", "render": function (valor) {
+                        if (valor) {
+                            return '<span class="badge bg-success">Habilitado</span>'
+
+                        }
+                        else {
+                            return '<span class="badge bg-danger">Deshabilitado</span>'
+                        }
+                    }
+                },
+            ],
+            language: {
+                url: "//cdn.datatables.net/plug-ins/1.12.1/i18n/es-ES.json"
+            }
+        });
+        //click sobre la fila abre el modal de editar el registro
+        $("#tabla-usuarios tbody").on("click", "tr", function () {
+            FilaSeleccionada = $(this).closest("tr");
+            IndexFila = $(this).closest("tr").index();
+            var data = DataTable.row(FilaSeleccionada).data();
+            AbrirModal(data);
+        });
+        //funcion para abri modal, en el botonn se crea un evento onclick
+        function AbrirModal(json) {
+            $('#txtid').val(0);
+            $('#txtnombres').val("");
+            $('#txtapellidos').val("");
+            $('#txtcorreo').val("");
+            $('#cboactivo').val(1);
+            $('#mensajeError').hide();
+            if (json != null) {
+                $('#txtid').val(json.IdUsuario);
+                $('#txtnombres').val(json.Nombre);
+                $('#txtapellidos').val(json.Apellidos);
+                $('#txtcorreo').val(json.Correo);
+                if (json.Activo === "True")
+                    $('#cboactivo').val(1);
+                else
+                    $('#cboactivo').val(0);
+            }
+            $("#agregar-usuarios").modal("show");
+        }
+        ////////////////////
+        function Guardar() {
+            var Usuario =
+            {
+                IdUsuario: $('#txtid').val(), //id
+                Activo: $('#cboactivo').val() == 1 ? true : false,//activo
+                Apellidos: $('#txtapellidos').val(),//apellidos
+                Correo: $('#txtcorreo').val(),//correo
+                Nombre: $('#txtnombres').val(),//nombre
+            }
+            jQuery.ajax({
+                url: '@Url.Action("GuardarUsuarios", "GestionUsuarios")',
+                type: "POST",
+                data: JSON.stringify({objeto : Usuario}),
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    $.LoadingOverlay("hide");
+                    //usuario nuevo
+                    if (Usuario.IdUsuario == 0) {
+                        if (data.Resultado != 0) {
+                            Usuario.IdUsuario = data.Resultado;
+                            DataTable.row.add(Usuario).draw(false);
+                            $("#agregar-usuarios").modal("hide");
+                        }
+                        else {
+                            $("#mensajeError").text(data.Mensaje);
+                            $("#mensajeError").show();
+                        }
+                    }
+                    //editar usuario
+                    else {
+                        if (data.Resultado) {
+                            DataTable.row(FilaSeleccionada).data(Usuario).draw(false);
+                            FilaSeleccionada = null;
+                            $("#agregar-usuarios").modal("hide");
+                        }
+                        else {
+                            $("#mensajeError").text(data.Mensaje);
+                            $("#mensajeError").show();
+                        }
+                    }
+                },
+                error: function (error) {
+                    $.LoadingOverlay("hide");
+                    $("#mensajeError").text("Error al ejecutar la operación");
+                    $("#mensajeError").show();
+                },
+                //realizar algo durante la ejecución de un proceso
+                beforeSend: function () {
+                    $.LoadingOverlay("show", {
+                        background: "rgba(0, 0, 0, 0.5)",
+                        imageResizeFactor: 1,
+                        imageColor: "#808080"
+                    })
+                }
+            })
+        }
+        function Eliminar() {
+            let IdUsuario = $("#txtid").val();
+            swal({
+                title: "¿Desea eliminar el usuario?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonClass: "btn-primary",
+                confirmButtonText: "Si!",
+                cancelButtonText: "No!",
+                closeOnConfirm: true
+            },
+            function () {
+                jQuery.ajax({
+                    url: '@Url.Action("EliminarUsuarios", "GestionUsuarios")',
+                    type: "POST",
+                    data: JSON.stringify({Id : IdUsuario}),
+                    dataType: "json",
+                    contentType: "application/json; charset=utf-8",
+                    success: function (data) {
+                        $.LoadingOverlay("hide");
+                        if (data.Resultado) {
+                            DataTable.row(IndexFila).remove().draw();
+                            $("#agregar-usuarios").modal("hide");
+                        }
+                        else {
+                            swal("No se puede eliminar", data.Mensaje, "Error");
+                        }
+                    },
+                    error: function (error) {
+                        console.log(error)
+                    },
+                    beforeSend: function () {
+                        $.LoadingOverlay("show", {
+                            background: "rgba(0, 0, 0, 0.5)",
+                            imageResizeFactor: 1,
+                            imageColor: "#808080"
+                        })
+                    }
+                });
+            });
+        }
+    </script>
+}
